@@ -158,7 +158,7 @@ plotthesecorrmatrices(corrmatrixtoplot, group1name = 'AD', group2name = 'PSP')
 
 # Now make simpler graphs based on unified brain regions
 
-plotthesecorrmatrices <- function(corrmatrixtoplot, group1name = 'Group 1', group2name = 'Group2') {
+plotthesecontractedcorrmatrices <- function(corrmatrixtoplot, group1name = 'Group 1', group2name = 'Group2') {
   diag(corrmatrixtoplot) <- 0
   graphtoplot <- graph.adjacency(corrmatrixtoplot,weighted=TRUE,mode="lower")
   regionlist$V3 <- NA
@@ -212,15 +212,37 @@ plotthesecorrmatrices <- function(corrmatrixtoplot, group1name = 'Group 1', grou
 }
 
 corrmatrixtoplot <- controlminusPSP[order((regionlist$V2)),order((regionlist$V2))]
-plotthesecorrmatrices(corrmatrixtoplot, group1name = 'Control', group2name = 'PSP')
+plotthesecontractedcorrmatrices(corrmatrixtoplot, group1name = 'Control', group2name = 'PSP')
 
 corrmatrixtoplot <- controlminusAD[order((regionlist$V2)),order((regionlist$V2))]
-plotthesecorrmatrices(corrmatrixtoplot, group1name = 'Control', group2name = 'ADMCI')
+plotthesecontractedcorrmatrices(corrmatrixtoplot, group1name = 'Control', group2name = 'ADMCI')
 
 corrmatrixtoplot <- ADminusPSP[order((regionlist$V2)),order((regionlist$V2))]
-plotthesecorrmatrices(corrmatrixtoplot, group1name = 'ADMCI', group2name = 'PSP')
+plotthesecontractedcorrmatrices(corrmatrixtoplot, group1name = 'ADMCI', group2name = 'PSP')
 
+corrmatrixtoplot <- AvConnMatrix[order((regionlist$V2)),order((regionlist$V2))]
+plotthesecontractedcorrmatrices(corrmatrixtoplot, group1name = 'Control Pos', group2name = 'Control Neg')
+x11()
+corrplot(corrmatrixtoplot, method = 'color', is.corr=FALSE, title = "Controls", tl.pos = "n")
+corrRect(clustsizes,lwd=2)
+dev.copy2pdf(file = "RawAvConPlot.pdf")
+dev.off()  
 
+corrmatrixtoplot <- AvADMatrix[order((regionlist$V2)),order((regionlist$V2))]
+plotthesecontractedcorrmatrices(corrmatrixtoplot, group1name = 'AD Pos', group2name = 'AD Neg')
+x11()
+corrplot(corrmatrixtoplot, method = 'color', is.corr=FALSE, title = "AD", tl.pos = "n")
+corrRect(clustsizes,lwd=2)
+dev.copy2pdf(file = "RawAvADPlot.pdf")
+dev.off()  
+
+corrmatrixtoplot <- AvPSPMatrix[order((regionlist$V2)),order((regionlist$V2))]
+plotthesecontractedcorrmatrices(corrmatrixtoplot, group1name = 'PSP Pos', group2name = 'PSP Neg')
+x11()
+corrplot(corrmatrixtoplot, method = 'color', is.corr=FALSE, title = "PSP", tl.pos = "n")
+corrRect(clustsizes,lwd=2)
+dev.copy2pdf(file = "RawAvPSPPlot.pdf")
+dev.off()  
 
 
 # 
