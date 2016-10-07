@@ -1,5 +1,6 @@
 #17AD 13control 17 PSP
 
+#setwd('../')
 library("igraph")
 library("rgl")
 library("bigmemory")
@@ -154,6 +155,73 @@ diag(corrmatrixtoplot) <- 0
 ADPSPPvals <- ADPSPPvals[order((regionlist$V2)),order((regionlist$V2))]
 corrmatrixtoplot[ADPSPPvals >= 0.001] <- 0
 plotthesecorrmatrices(corrmatrixtoplot, group1name = 'AD', group2name = 'PSP')
+
+# Now make simpler graphs based on unified brain regions
+
+plotthesecorrmatrices <- function(corrmatrixtoplot, group1name = 'Group 1', group2name = 'Group2') {
+  diag(corrmatrixtoplot) <- 0
+  graphtoplot <- graph.adjacency(corrmatrixtoplot,weighted=TRUE,mode="lower")
+  regionlist$V3 <- NA
+  
+  num = 0
+  for(region in unique(unlist(regionlist$V1))){
+    num = num+1 
+    regionlist$V3[regionlist$V1 == region] <- num
+  }
+  graphtoplot <- set.vertex.attribute(graphtoplot, 'zlocation', value=nodelocations[,3])
+  graphtoplot <- set.vertex.attribute(graphtoplot, 'ylocation', value=nodelocations[,2])
+  graphtoplot <- set.vertex.attribute(graphtoplot, 'xlocation', value=nodelocations[,1])
+  
+  contractedgraphtoplot <- contract.vertices(graphtoplot, regionlist$V3, vertex.attr.comb=list("weight"="mean", "xlocation"="mean", "ylocation"="mean", "zlocation"="mean", "ignore"))
+  newlocations <- matrix(c(get.vertex.attribute(contractedgraphtoplot, "xlocation"), get.vertex.attribute(contractedgraphtoplot, "ylocation"), get.vertex.attribute(contractedgraphtoplot, "zlocation")), nrow = 120, ncol = 3)
+  E(contractedgraphtoplot)[ abs(weight) < max(abs(quantile(get.edge.attribute(contractedgraphtoplot, "weight"), 0.005, na.rm = TRUE)),abs(quantile(get.edge.attribute(contractedgraphtoplot, "weight"), 0.995, na.rm = TRUE))) ]$weight <- 0
+  contractedgraphtoplot <- contractedgraphtoplot - E(contractedgraphtoplot)[E(contractedgraphtoplot)$weight==0]
+  
+  E(contractedgraphtoplot)[ weight > 0]$color <- "blue"
+  E(contractedgraphtoplot)[ weight < 0]$color <- "red"
+  
+  rgl.open()
+  rglplot(contractedgraphtoplot, layout = newlocations, vertex.size=3, vertex.label=NA, edge.width=E(contractedgraphtoplot)$weight, edge.color= E(contractedgraphtoplot)$color)
+  par3d(windowRect = c(20, 30, 800, 800))
+  rgl.viewpoint(180,60,90)
+  par3d(zoom=0.6)
+  legend3d("topright", legend = paste('Both ways for', c(group1name), 'and', c(group2name)), pch = 16, col = c("red"), cex=4, inset=c(0.02))
+  
+  tempgraphtoplot <- contractedgraphtoplot
+  tempgraphtoplot <- delete.edges(tempgraphtoplot, E(tempgraphtoplot)[weight < 0])
+  E(tempgraphtoplot)[ weight > 0]$color <- "blue"
+  
+  rgl.open()
+  rglplot(tempgraphtoplot, layout = newlocations, vertex.size=3, vertex.label=NA, edge.width=3*E(tempgraphtoplot)$weight, edge.color= E(tempgraphtoplot)$color)
+  par3d(windowRect = c(20, 30, 800, 800))
+  rgl.viewpoint(180,60,90)
+  par3d(zoom=0.6)
+  legend3d("topright", legend = paste('Stronger in', c(group1name), 'than', c(group2name)), pch = 16, col = c("red"), cex=4, inset=c(0.02))
+  
+  tempgraphtoplot <- contractedgraphtoplot
+  tempgraphtoplot <- delete.edges(tempgraphtoplot, E(tempgraphtoplot)[weight > 0])
+  E(tempgraphtoplot)[ weight < 0]$color <- "red"
+  
+  rgl.open()
+  rglplot(tempgraphtoplot, layout = newlocations, vertex.size=3, vertex.label=NA, edge.width=3*E(tempgraphtoplot)$weight, edge.color= E(tempgraphtoplot)$color)
+  par3d(windowRect = c(20, 30, 800, 800))
+  rgl.viewpoint(180,60,90)
+  par3d(zoom=0.6)
+  legend3d("topright", legend = paste('Stronger in', c(group2name), 'than', c(group1name)), pch = 16, col = c("red"), cex=4, inset=c(0.02))
+  
+}
+
+corrmatrixtoplot <- controlminusPSP[order((regionlist$V2)),order((regionlist$V2))]
+plotthesecorrmatrices(corrmatrixtoplot, group1name = 'Control', group2name = 'PSP')
+
+corrmatrixtoplot <- controlminusAD[order((regionlist$V2)),order((regionlist$V2))]
+plotthesecorrmatrices(corrmatrixtoplot, group1name = 'Control', group2name = 'ADMCI')
+
+corrmatrixtoplot <- ADminusPSP[order((regionlist$V2)),order((regionlist$V2))]
+plotthesecorrmatrices(corrmatrixtoplot, group1name = 'ADMCI', group2name = 'PSP')
+
+
+
 
 # 
 # 
