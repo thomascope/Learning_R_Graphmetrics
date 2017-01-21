@@ -1,5 +1,5 @@
 ---
-title: "test_graph_moderation"
+title: "moderation_analysis_justgraphs"
 author: "Thomas Cope"
 date: "20 January 2017"
 output: html_document
@@ -23,18 +23,18 @@ When you click the **Knit** button a document will be generated that includes bo
 # Independent variable is group
 # Moderator variable is the graph metric (initially AV_binding)
 
-graph_mod_func <- function(this_col) {
+graph_mod_func <- function(this_col) { 
 library(psych)
 library(ggplot2)
 library(multilevel)
   
-covariate_frame <- read.csv("../Data analysis/covariates.csv", header=TRUE)
+covariate_frame <- read.csv("C:/Users/Thoma/Documents/Academic work/Robin data/Data analysis/covariates.csv", header=TRUE)
 
 for(level in unique(covariate_frame$Group)){
   covariate_frame[paste("dummy", level, sep = "_")] <- ifelse(covariate_frame$Group == level, 1, 0)
 }
 
-covariate_frame_justpats <- read.csv("../Data analysis/covariates_justpats.csv", header=TRUE)
+covariate_frame_justpats <- read.csv("C:/Users/Thoma/Documents/Academic work/Robin data/Data analysis/covariates_justpats.csv", header=TRUE)
 
 for(level in unique(covariate_frame_justpats$Group)){
   covariate_frame_justpats[paste("dummy", level, sep = "_")] <- ifelse(covariate_frame_justpats$Group == level, 1, 0)
@@ -60,49 +60,47 @@ print(thiscol)
 # thiscol =    'medianELNorm'
 
 
-
-# describeBy(covariate_frame, covariate_frame$Group)
 # 
-# example <- lm(degreeWt ~ dummy_2 + dummy_3, data=covariate_frame)
-# summary(example)
-
-model1 <- lm(as.formula(paste(thiscol, "~ AV_binding + dummy_2 + dummy_3")),data=covariate_frame)
-
-print(summary(model1))
-
-covariate_frame$AV.d1 <- (covariate_frame$AV_binding * covariate_frame$dummy_1)
-covariate_frame$AV.d2 <- (covariate_frame$AV_binding * covariate_frame$dummy_2)
-covariate_frame$AV.d3 <- (covariate_frame$AV_binding * covariate_frame$dummy_3)
-
-model2 <- lm(as.formula(paste(thiscol, "~ AV_binding + dummy_2 + dummy_3 + AV.d2 + AV.d3")),data=covariate_frame)
-
-print(summary(model2))
-print(anova(model1, model2))
-
-#color <- c("black","red","green")
-print(ggplot(covariate_frame, aes_string(x = "AV_binding", y = thiscol)) + 
-  geom_smooth(aes(group=Groupname), method="lm", se=T, color="black", fullrange=T) +
-  geom_point(aes(color=Groupname)))
+# model1 <- lm(as.formula(paste(thiscol, "~ AV_binding + dummy_2 + dummy_3")),data=covariate_frame)
+# 
+# print(summary(model1))
+# 
+# covariate_frame$AV.d1 <- (covariate_frame$AV_binding * covariate_frame$dummy_1)
+# covariate_frame$AV.d2 <- (covariate_frame$AV_binding * covariate_frame$dummy_2)
+# covariate_frame$AV.d3 <- (covariate_frame$AV_binding * covariate_frame$dummy_3)
+# 
+# model2 <- lm(as.formula(paste(thiscol, "~ AV_binding + dummy_2 + dummy_3 + AV.d2 + AV.d3")),data=covariate_frame)
+# 
+# print(summary(model2))
+# print(anova(model1, model2))
+# 
+# #color <- c("black","red","green")
+# print(ggplot(covariate_frame, aes_string(x = "AV_binding", y = thiscol)) + 
+#   geom_smooth(aes(group=Groupname), method="lm", se=T, color="black", fullrange=T) +
+#   geom_point(aes(color=Groupname)))
 
 # now repeat for just AD vs PSP
 
 model3 <- lm(as.formula(paste(thiscol, "~ AV_binding + dummy_2")),data=covariate_frame_justpats)
 
-print(summary(model3))
+#print(summary(model3))
 
 covariate_frame_justpats$AV.d2 <- (covariate_frame_justpats$AV_binding * covariate_frame_justpats$dummy_2)
 covariate_frame_justpats$AV.d3 <- (covariate_frame_justpats$AV_binding * covariate_frame_justpats$dummy_3)
 
 model4 <- lm(as.formula(paste(thiscol, "~ AV_binding + dummy_2 + AV.d2")),data=covariate_frame_justpats)
-print(summary(model4))
-print(anova(model3, model4))
+#print(summary(model4))
+aa <- anova(model3, model4)
+#print(aa)
 
 #color <- c("black","red","green")
 print(ggplot(covariate_frame_justpats, aes_string(x = "AV_binding", y = thiscol)) +
   geom_smooth(aes(group=Groupname), method="lm", se=T, color="black", fullrange=T) +
-  geom_point(aes(color=Groupname)))
-
+  geom_point(aes(color=Groupname)) +
+  ggtitle(paste("MODERATION p = ", round(aa$Pr[2], digits=4))))
+  
 }
+
 
 for( i in 1:16 ) {
   graph_mod_func(i)
